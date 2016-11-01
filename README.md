@@ -1,1 +1,1 @@
-####  --  USD$ (US Drone Strike) Chronicles - Project Initialized
+#### -  USD$ (US Drone Strike) Chronicles - Project Initialized
