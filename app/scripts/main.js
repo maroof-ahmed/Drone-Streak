@@ -2,10 +2,10 @@
 /// <reference path="../../typings/jquery/jquery.d.ts" />
 
 // Initialize Angular app
-var usd$ = angular.module('USD$', ['ui.router']);
+angular.module('USD$', ['ui.router']);
 
 // Define Angular Router Config
-usd$.config(function($stateProvider, $urlRouterProvider) {
+angular.module('USD$').config(['$stateProvider', '$urlRouterProvider', function($stateProvider, $urlRouterProvider) {
   $urlRouterProvider.otherwise('home');
     $stateProvider
         .state('home', {
@@ -18,9 +18,8 @@ usd$.config(function($stateProvider, $urlRouterProvider) {
             templateUrl: '/about.html'
         });
 
-});
+}]);
 
 
-$(document).ready(function() {
-
-});
+// $(document).ready(function() {
+// });

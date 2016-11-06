@@ -167,9 +167,11 @@ gulp.task('wiredep', () => {
 });
 
 gulp.task('build', ['lint', 'html', 'images', 'fonts', 'extras'], () => {
-  return gulp.src('dist/**/*').pipe($.size({title: 'build', gzip: true}));
+  gulp.src('dist/**/*').pipe($.size({title: 'build', gzip: true}));
+  return gulp.start('serve:dist');
 });
 
 gulp.task('default', ['clean'], () => {
   gulp.start('build');
+  // gulp.start('serve:dist');
 });
