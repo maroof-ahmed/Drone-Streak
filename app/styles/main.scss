@@ -402,6 +402,17 @@ body {
         color: inherit;
         border-width: 2px;
     }
+    &.summary {
+        .highlight {
+            background-color: #1e2834;
+            //background-color: #29384a;
+        }
+        .pad-topbot-5 {
+            padding-top: 7px;
+            padding-bottom: 7px;
+        }
+        //background-color: #1e2834;
+    }
 }
 
 .pagination > li > a, .pagination > li > span {

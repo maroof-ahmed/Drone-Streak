@@ -25,18 +25,24 @@ angular.module('USD$')
           if (response.status == 200) {
               app.hideProcessing();
               $scope.droneData = response.data.strike.reverse();
+              // Assume Pak-Afghan Border as Pakistan
+              $scope.droneData.forEach(function (dataItem) {
+                  if(dataItem.country == 'Pakistan-Afghanistan Border') {
+                      dataItem.country = 'Pakistan';
+                  }
+              });
               if($scope.isDbData) { $scope.droneData = response.data.strike.reverse(); }
               var droneData = $scope.droneData;
               console.log('dData', droneData);
 
               // Save Data
               $.ajax({
-                  type: "POST",
-                  url: "savedata.php",
+                  type: 'POST',
+                  url: 'savedata.php',
                   // The key needs to match your method's input parameter (case-sensitive).
                   data: { droneStreamData: JSON.stringify(droneData) },
                   // contentType: "application/json; charset=utf-8",
-                  dataType: "json",
+                  dataType: 'json',
                   success: function(response) {
                       console.log('response', response);
                   },
@@ -89,6 +95,110 @@ angular.module('USD$')
                   }
               };
 
+
+              $scope.sortByDeaths = function (item) {
+                  // console.log('item', input);
+                  if(parseInt(item.deaths_max)) {
+                      return parseInt(item.deaths_max);
+                  } else {
+                      if(item.deaths == 'Unknown') {
+                          return 0;
+                      } else {
+                          return parseInt(item.deaths);
+                      }
+                  }
+              };
+              $scope.sortByInjuries = function (item) {
+                  // if(item.injuries) {
+                  //     if(item.injuries.indexOf('-') != -1) {
+                  //         return parseInt(item.injuries.split('-').pop());
+                  //     } else if(item.injuries == 'Dozens') {
+                  //         return 24;
+                  //     } else if(item.injuries == 'Some') {
+                  //         return 7;
+                  //     } else if(item.injuries == 'Several') {
+                  //         return 30;
+                  //     }
+                  //     return parseInt(item.injuries);
+                  // } else {
+                  //     return 0;
+                  // }
+
+                  var injuries = item.injuries != '' ? item.injuries : '0';
+                  if(injuries.indexOf('-') != -1) {
+                      injuries = parseInt(injuries.split('-').pop());
+                      if(isNaN(injuries)) injuries = parseInt(item.injuries.split('-')[0]);
+                  } else if(injuries.indexOf('Unknown') != -1 || injuries.indexOf('Possibl') != -1 || injuries.indexOf('Yes') != -1) {
+                      civilians = 1;
+                  } else if(injuries == 'Dozens') {
+                      injuries = 24;
+                  } else if(injuries == 'Some') {
+                      injuries = 7;
+                  } else if(injuries == 'Several') {
+                      injuries = 30;
+                  }  else if(injuries.indexOf('Many') != -1) {
+                      civilians = 10;
+                  } else if(injuries.indexOf('At least') != -1) {
+                      injuries = injuries.replace('At least', ' ');
+                      injuries = injuries.split(' ');
+                      injuries.forEach(function(str) {
+                          if(!isNaN(parseInt(str))) {injuries = parseInt(str);}
+                      });
+                  }
+                  return parseInt(injuries);
+
+              };
+              $scope.sortByCivilianDeaths = function (item) {
+                  var civilians = item.civilians != '' ? item.civilians : '0';
+
+                  if(civilians.indexOf('-') != -1) {
+                      civilians = parseInt(civilians.split('-').pop());
+                      if(isNaN(civilians)) civilians = parseInt(item.civilians.split('-')[0]);
+                  } else if(civilians.indexOf('Unknown') != -1  || civilians.indexOf('Possibl') != -1 || civilians.indexOf('Yes') != -1) {
+                      civilians = 1;
+                  } else if(civilians.indexOf('Some') != -1) {
+                      civilians = 7;
+                  } else if(civilians.indexOf('At least') != -1) {
+                      civilians = civilians.replace('At least', ' ');
+                      civilians = civilians.split(' ');
+                      civilians.forEach(function(str) {
+                          if(!isNaN(parseInt(str))) {civilians = parseInt(str);}
+                      });
+                  } else if(civilians.indexOf('Many') != -1) {
+                      civilians = 10;
+                  } else if(isNaN(civilians)) {
+                      console.log('civilians', civilians);
+                  }
+                  return parseInt(civilians);
+              }
+              $scope.sortByChildDeaths = function (item) {
+                  var children = item.children != '' ? item.children : '0';
+
+                  if(children.indexOf('-') != -1) {
+                      children = parseInt(children.split('-').pop());
+                      if(isNaN(children)) children = parseInt(item.children.split('-')[0]);
+                  } else if(children.indexOf('Unknown') != -1  || children.indexOf('Possibl') != -1 || children.indexOf('Yes') != -1) {
+                      children = 1;
+                  } else if(children.indexOf('At least') != -1) {
+                      children = children.replace('At least', ' ');
+                      children = children.split(' ');
+                      children.forEach(function(str) {
+                          if(!isNaN(parseInt(str))) {children = parseInt(str);}
+                      });
+                  } else if(isNaN(children)) {
+                      console.log('children', children);
+                  }
+                  return parseInt(children);
+              }
+
+
+              $scope.resetFromTo = function () {
+                      $scope.search.filterFromMonth = '';
+                      $scope.search.filterToMonth = '';
+                      $scope.search.filterFromYear = '';
+                      $scope.search.filterToYear = '';
+              }
+
               $scope.search = {filterDeathsInjuries: 9999};
               // Set Initial Filter Value
               // $scope.filterDeathsInjuries = 99999;
@@ -120,17 +230,49 @@ angular.module('USD$')
                       droneData = this.search.filterCountry != '' ? droneData : $scope.droneData;
 
                       if (this.search.filterType == 'year' && this.search.filterYear) {
-                          console.log('YEAR?', this.search.filterYear, this.search.filterDeathsInjuries);
+                          // $scope.resetFromTo();
+                          // console.log('YEAR?', this.search.filterYear, this.search.filterDeathsInjuries);
                           if (this.search.filterYear != '') {
                               // droneData = $filter('filter')($scope.droneData, parseInt(this.search.filterYear));
                               var _this = this;
                               droneData = $filter('filter')(droneData, function(item, i, arr) {
                                   var date = item.date;
+                                  if (_this.search.filterMonth != '') {
+                                      var month = $filter('date')(date, 'MMMM');
+                                      console.log('month', month);
+                                  }
                                   var year = $filter('date')(date, 'yyyy');
-                                  return parseInt(year) == parseInt(_this.search.filterYear);
+                                  if (_this.search.filterMonth != '') {
+                                      return (month == _this.search.filterMonth) && (parseInt(year) == parseInt(_this.search.filterYear));
+                                  } else {
+                                      return parseInt(year) == parseInt(_this.search.filterYear);
+                                  }
+
                               });
                           } else {
                               droneData = this.search.filterCountry != '' ? droneData : $scope.droneData;
+                          }
+                      }
+                      if (this.search.filterType == 'from_to') {
+                          var _this = this;
+                          if (this.search.filterFromYear != '' && this.search.filterToYear != '') {
+                              droneData = $filter('filter')(droneData, function(item, i, arr) {
+                                  var date = item.date;
+                                  if (_this.search.filterFromMonth != '' && _this.search.filterToMonth != '') {
+                                      var month = $filter('date')(date, 'M');
+                                      console.log('month', month);
+                                  }
+                                  var year = $filter('date')(date, 'yyyy');
+                                  if (_this.search.filterFromMonth != '' && _this.search.filterToMonth != '') {
+                                      return ((parseInt(month) >= parseInt(_this.search.filterFromMonth)) && (parseInt(year) >= parseInt(_this.search.filterFromYear))) && ((parseInt(month) <= parseInt(_this.search.filterToMonth)) && (parseInt(year) <= parseInt(_this.search.filterToYear)));
+                                  } else {
+                                      return (parseInt(year) >= parseInt(_this.search.filterFromYear)) && (parseInt(year) <= parseInt(_this.search.filterToYear));
+                                  }
+
+                              });
+                          } else {
+                              droneData = this.search.filterCountry != '' ? droneData : $scope.droneData;
+                              // droneData = $scope.droneData;
                           }
                       }
                       if (this.search.filterType == 'deaths') {
@@ -163,17 +305,43 @@ angular.module('USD$')
                   }
 
                   $scope.summarizeResults(droneData);
+
               };
 
 
               $scope.summarizeResults = function (resultsData) {
+                  if(resultsData.length == 0) return;
                   $scope.totalStrikes = resultsData.length;
                   $scope.totalDeaths = 0;
                   $scope.totalInjuries = 0;
                   $scope.totalCiviliansKilled = 0;
                   $scope.totalChildrenKilled = 0;
 
-                  $scope;
+                  $scope.lastStrikeDate = $filter('orderBy')(resultsData, 'date', true)[0].date;
+                  $scope.previousStrikeDate = $filter('orderBy')(resultsData, 'date', true)[1].date ? $filter('orderBy')(resultsData, 'date', true)[1].date : '';
+                  $scope.firstStrikeDate = $filter('orderBy')(resultsData, 'date')[0].date;
+                  $scope.maximumDeaths = $filter('orderBy')(resultsData, $scope.sortByDeaths, true)[0].deaths;
+                  $scope.minimumDeaths = $filter('orderBy')(resultsData, $scope.sortByDeaths)[0].deaths;
+
+                  $scope.maximumInjuries = $filter('orderBy')(resultsData, $scope.sortByInjuries, true)[0].injuries;
+                  if($scope.maximumInjuries == '') {$scope.maximumInjuries = 0}
+
+                  $scope.minimumInjuries = $filter('orderBy')(resultsData, $scope.sortByInjuries)[0].injuries;
+                  if($scope.minimumInjuries == '') {$scope.minimumInjuries = 0}
+
+                  $scope.maximumCiviliansKilled = $filter('orderBy')(resultsData, $scope.sortByCivilianDeaths, true)[0].civilians;
+                  if($scope.maximumCiviliansKilled == '') {$scope.maximumCiviliansKilled = 0}
+
+                  $scope.minimumCiviliansKilled = $filter('orderBy')(resultsData, $scope.sortByCivilianDeaths)[0].civilians;
+                  if($scope.minimumCiviliansKilled == '') {$scope.minimumCiviliansKilled = 0}
+
+                  $scope.maximumChildrenKilled = $filter('orderBy')(resultsData, $scope.sortByChildDeaths, true)[0].children;
+                  if($scope.maximumChildrenKilled == '') {$scope.maximumChildrenKilled = 0}
+
+                  $scope.minimumChildrenKilled = $filter('orderBy')(resultsData, $scope.sortByChildDeaths)[0].children;
+                  if($scope.minimumChildrenKilled == '') {$scope.minimumChildrenKilled = 0}
+
+                  console.log('max min injuries', $scope.maximumInjuries, $scope.minimumInjuries);
 
                   resultsData.forEach(function (item, i) {
                       var deaths = item.deaths != '' ? item.deaths : '0';
@@ -229,8 +397,9 @@ angular.module('USD$')
                       }
                       $scope.totalCiviliansKilled += parseInt(civilians);
 
+
                       var children = item.children != '' ? item.children : '0';
-                      // console.log('children', children);
+
                       if(children.indexOf('-') != -1) {
                           children = parseInt(children.split('-').pop());
                           if(isNaN(children)) children = parseInt(item.children.split('-')[0]);
@@ -254,34 +423,6 @@ angular.module('USD$')
               $scope.summarizeResults(droneData);
 
 
-              $scope.sortByDeaths = function (item) {
-                  // console.log('item', input);
-                  if(parseInt(item.deaths_max)) {
-                      return parseInt(item.deaths_max);
-                  } else {
-                      if(item.deaths == 'Unknown') {
-                          return -1;
-                      } else {
-                          return parseInt(item.deaths);
-                      }
-                  }
-              };
-              $scope.sortByInjuries = function (item) {
-                  if(item.injuries) {
-                      if(item.injuries.indexOf('-') != -1) {
-                          return parseInt(item.injuries.split('-').pop());
-                      } else if(item.injuries == 'Dozens') {
-                          return 24;
-                      } else if(item.injuries == 'Some') {
-                          return 7;
-                      } else if(item.injuries == 'Several') {
-                          return 30;
-                      }
-                      return parseInt(item.injuries);
-                  } else {
-                      return 0;
-                  }
-              };
               $scope.setSort = function () {
                   if($scope.sorter == '') {droneData = $scope.initialDroneData;}
                   if($scope.sorter == 'latest') {droneData = $filter('orderBy')(droneData, 'date', true);}
@@ -291,6 +432,11 @@ angular.module('USD$')
                   if($scope.sorter == 'min_deaths') {droneData = $filter('orderBy')(droneData, $scope.sortByDeaths);}
                   if($scope.sorter == 'max_injuries') {droneData = $filter('orderBy')(droneData, $scope.sortByInjuries, true);}
                   if($scope.sorter == 'min_injuries') {droneData = $filter('orderBy')(droneData, $scope.sortByInjuries);}
+
+                  if($scope.sorter == 'max_civilian_deaths') {droneData = $filter('orderBy')(droneData, $scope.sortByCivilianDeaths, true);}
+                  if($scope.sorter == 'min_civilian_deaths') {droneData = $filter('orderBy')(droneData, $scope.sortByCivilianDeaths);}
+                  if($scope.sorter == 'max_child_deaths') {droneData = $filter('orderBy')(droneData, $scope.sortByChildDeaths, true);}
+                  if($scope.sorter == 'min_child_deaths') {droneData = $filter('orderBy')(droneData, $scope.sortByChildDeaths);}
                   $scope.setPage(1);
               };
 
@@ -340,11 +486,11 @@ angular.module('USD$')
 
       // Get Data from DB if Present
       $.ajax({
-          type: "POST",
-          url: "getdata.php",
+          type: 'POST',
+          url: 'getdata.php',
           // contentType: "application/json; charset=utf-8",
           // cache: false,
-          dataType: "json",
+          dataType: 'json',
           // Fixes 'always_populate_raw_post_data' Error
           data: {dbData: true},
           success: function(response) {
@@ -389,14 +535,3 @@ angular.module('USD$')
 
   }
 ]);
-
-// function homeController() {
-//   this.page = 'Home';
-// };
-
-// app.showData = function () {
-//     var data = app.apiData;
-//     data.forEach(function () {
-//
-//     });
-// };
