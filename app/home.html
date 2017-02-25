@@ -1,18 +1,357 @@
 
-<section ng-controller="homeController" class="home">
+<div class="jumbotron"><h1>Home</h1></div>
 
-<div class="jumbotron">
-  <h1>'US, 'Drone, '$treak!</h1>
-  <!--<h2 class="lead">Exposed</h2>-->
-  <p><a class="btn btn-lg btn-primary" href="#">Exposed!</a></p>
-</div>
+<section class="home">
 
-<div class="row marketing">
-  <div class="col-lg-6">
-    <h4>{{page}}</h4>
-    <p>This is the homepage.</p>
+    <!--<div class="row marketing">-->
+        <!--<div class="col-lg-6">-->
+            <!--<h4>{{page}}</h4>-->
+            <!--<p>This is the homepage.</p>-->
+        <!--</div>-->
+    <!--</div>-->
 
-  </div>
-</div>
+    <div class="filter-sort-wrap jumbotron" style="/*margin-bottom: 0;*/">
+        <form class="form-inline-- clearfix">
+            <div class="form-group col-xs-12 col-sm-9">
+                <label class="col-xs-12 col-sm-4" for="exampleInputName2"><h4 class="text-left"> Country </h4></label>
+                <label class="col-xs-12 col-sm-8" for="exampleInputName2"><h4 class="text-left"> Search </h4></label>
+
+                <div class="col-xs-12 col-sm-4">
+                    <select class="dropdown form-control input-lg" ng-model="search.filterCountry">
+                        <option value="" selected="selected">All</option>
+                        <option ng-repeat="country in allCountries" value="{{country}}">{{country}}</option>
+                    </select>
+                </div>
+
+                <div class="col-xs-12 col-sm-4">
+                <select class="dropdown form-control input-lg" ng-model="search.filterType">
+                    <option value="" selected="selected">All</option>
+                    <!--<option value="country">Country</option>-->
+                    <option value="year">Year</option>
+                    <option value="deaths">Deaths</option>
+                    <option value="injuries">Injuries</option>
+                </select>
+                </div>
+
+                <div ng-if="search.filterType=='year'" class="col-xs-12 col-sm-2">
+                    <select class="dropdown form-control input-lg" ng-model="search.filterMonth">
+                        <option value="" selected="selected">All</option>
+                        <option value="January">January</option>
+                        <option value="February">February</option>
+                        <option value="March">March</option>
+                        <option value="April">April</option>
+                        <option value="May">May</option>
+                        <option value="June">June</option>
+                        <option value="July">July</option>
+                        <option value="August">August</option>
+                        <option value="September">September</option>
+                        <option value="October">October</option>
+                        <option value="November">November</option>
+                        <option value="December">December</option>
+                    </select>
+                </div>
+
+                <div ng-if="search.filterType=='year'" class="col-xs-12 col-sm-2">
+                    <select ng-if="search.filterType=='year'" class="dropdown form-control input-lg" ng-model="search.filterYear">
+                        <option value="" selected="selected">All</option>
+                        <option ng-repeat="year in allYears" value="{{year}}">{{year}}</option>
+                    </select>
+                </div>
+
+                <div class="col-xs-12 col-sm-4">
+                    <!--<input ng-required="" ng-if="filterType=='deaths' || filterType=='injuries' || filterType=='country'" type="text" class="form-control input-lg" id="" placeholder="Search..." ng-model="filterVal" ng-change="setFilterVal()">-->
+                    <!--<select ng-if="filterType=='country'" class="dropdown form-control input-lg" ng-model="filterCountry" ng-change="setFilterVal()">-->
+                        <!--<option value="" selected="selected">All</option>-->
+                        <!--<option ng-repeat="country in allCountries" value="{{country}}">{{country}}</option>-->
+                    <!--</select>-->
+
+                    <select ng-if="search.filterType=='deaths' || search.filterType=='injuries'" class="dropdown form-control input-lg" ng-model="search.filterDeathsInjuries">
+                        <option value="0" selected="selected">All</option>
+                        <option value="1">1 or more</option>
+                        <option value="2">2 or more</option>
+                        <option value="5">5 or more</option>
+                        <option value="10">10 or more</option>
+                        <option value="25">25 or more</option>
+                        <option value="50">50 or more</option>
+                        <option value="100">100 or more</option>
+                    </select>
+
+                </div>
+
+            </div>
+            <div class="form-group col-xs-12 col-sm-3 text-left">
+                <label for="exampleInputName2"><h4> Sort by </h4></label>
+                <select class="dropdown form-control input-lg" ng-model="sorter" ng-change="setSort()">
+                    <option value="" selected="selected">Select Criteria</option>
+                    <option value="latest">Latest</option>
+                    <option value="oldest">Oldest</option>
+                    <option value="country">Country</option>
+                    <option value="max_deaths">Maximum Deaths</option>
+                    <option value="max_injuries">Maximum Injuries</option>
+                    <option value="min_deaths">Minimum Deaths</option>
+                    <option value="min_injuries">Minimum Injuries</option>
+                </select>
+            </div>
+
+            <div class="col-xs-12 text-right mar-top-20">
+                <button class="btn btn-primary" style="padding: 10px 24px;" ng-click="setFilterVal()">Show Results</button>
+            </div>
+
+        </form>
+
+    </div>
+
+
+    <article ng-if="pagedDroneData.length != 0" class="jumbotron clearfix">
+        <h2 class="text-left">Synopsis :-</h2>
+        <hr class="hr" />
+
+        <div class="col-xs-12 col-sm-6">
+            <h4 class="col-sm-6 text-left">Total Strikes</h4>
+            <h4 class="col-sm-6 text-left">{{totalStrikes}}</h4>
+
+            <div class="clearfix"></div>
+
+            <h4 class="col-sm-6 text-left">Total Deaths</h4>
+            <h4 class="col-sm-6 text-left">{{totalDeaths}}</h4>
+
+            <div class="clearfix"></div>
+
+            <h4 class="col-sm-6 text-left">Total Injuries</h4>
+            <h4 class="col-sm-6 text-left">{{totalInjuries}}</h4>
+
+            <div class="clearfix"></div>
+
+            <h4 class="col-sm-6 text-left">Total Civilians Killed</h4>
+            <h4 class="col-sm-6 text-left">{{totalCiviliansKilled}}</h4>
+
+            <div class="clearfix"></div>
+
+            <h4 class="col-sm-6 text-left">Total Children Killed</h4>
+            <h4 class="col-sm-6 text-left">{{totalChildrenKilled}}</h4>
+        </div>
+
+        <div class="col-xs-12 col-sm-6">
+            <h4 class="col-sm-6 text-left">Last Strike Date</h4>
+            <h4 class="col-sm-6 text-left">{{lastStrikeDate}}</h4>
+
+            <div class="clearfix"></div>
+
+            <h4 class="col-sm-6 text-left">Maximum Deaths</h4>
+            <h4 class="col-sm-6 text-left">{{maximumDeaths}}</h4>
+
+            <div class="clearfix"></div>
+
+            <h4 class="col-sm-6 text-left">Minimum Deaths</h4>
+            <h4 class="col-sm-6 text-left">{{minimumDeaths}}</h4>
+
+            <div class="clearfix"></div>
+
+            <h4 class="col-sm-6 text-left">Maximum Injuries</h4>
+            <h4 class="col-sm-6 text-left">{{maximumInjuries}}</h4>
+
+            <div class="clearfix"></div>
+
+            <h4 class="col-sm-6 text-left">Minimum Injuries</h4>
+            <h4 class="col-sm-6 text-left">{{minimumInjuries}}</h4>
+        </div>
+    </article>
+
+
+    <div class="clearfix text-center" style="margin-bottom: 60px; margin-top: 40px;">
+        <ul uib-pagination
+            total-items="totalItems"
+            ng-model="currentPage"
+            items-per-page="itemsPerPage"
+            max-size="maxSize"
+            class="pagination-lg"
+            boundary-links="true"
+            rotate="false"
+            ng-change="pageChanged()">
+        </ul>
+    </div>
+
+
+    <!-- {{ array | orderBy : expression : reverse }} -->
+    <article ng-show="pagedDroneData.length == 0" class="col-xs-12">
+        <div class="jumbotron">
+            <h4>
+                No results match your search
+            </h4>
+        </div>
+    </article>
+
+<article ng-repeat="dataItem in pagedDroneData" class="col-xs-12 col-sm-6 col-lg-4 data-Item">
+    <div class="jumbotron" data-id="{{dataItem.number}}">
+        <img class="image" src="/images/drone-0-white.svg" style="width: 80px;" />
+        <h2 style="margin-top: 0; text-transform: uppercase;">{{dataItem.date | date:"dd - MMMM - yyyy"}}</h2>
+        <hr class="hr" />
+        <!--<img src="images/drone-1.svg" width="100px" style="position: relative; top:-124px;" />-->
+        <h1 style="font-weight: bold;"><img src="/images/flags/flat/64/{{dataItem.country}}.png" /> {{dataItem.country}}</h1>
+        <h3 style="text-overflow: ellipsis; overflow: hidden; white-space: nowrap;"><span ng-if="dataItem.town">{{dataItem.town}} - </span> <span ng-if="dataItem.location"><strong>{{dataItem.location.toUpperCase()}}</strong></span></h3>
+        <h2 class="clearfix" style="border: 2px solid; padding: 10px 0px;">
+            <div class="col-xs-6 no-padding" title="Killed">
+                <div class="col-xs-12" style="font-weight: bold; margin-bottom: 5px;">DEAD</div>
+                <i class="fa fa-user-times" style="top: -2px; position: relative;"></i>
+                <span style="font-weight: normal;">{{dataItem.deaths}}</span>
+            </div>
+            <div class="col-xs-6 no-padding" style="/*margin-left: 15px;*/" title="Injured">
+                <div class="col-xs-12" style="font-weight: bold; margin-bottom: 5px;">INJURED</div>
+                <i class="fa fa-ambulance"></i>
+                <span style="font-weight: normal;">{{dataItem.injuries && dataItem.injuries.toLowerCase() !== 'unknown' ? dataItem.injuries : 0}}</span>
+            </div>
+            <!--<div class="col-xs-6 no-padding" ng-class="{'col-xs-12': dataItem.injuries == ''}" title="Killed">-->
+                <!--<div class="col-xs-12" style="font-weight: bold; margin-bottom: 5px;">DEAD</div>-->
+                <!--<i class="fa fa-user-times" style="top: -2px; position: relative;"></i>-->
+                <!--<span style="font-weight: normal;">{{dataItem.deaths}}</span>-->
+            <!--</div>-->
+            <!--<div class="col-xs-6 no-padding" ng-class="{'col-xs-12': dataItem.deaths == ''}" style="/*margin-left: 15px;*/" ng-if="dataItem.injuries" title="Injured">-->
+                <!--<div class="col-xs-12" style="font-weight: bold; margin-bottom: 5px;">INJURED</div>-->
+                <!--<i class="fa fa-ambulance"></i>-->
+                <!--<span style="font-weight: normal;">{{dataItem.injuries}}</span>-->
+            <!--</div>-->
+        </h2>
+        <h3 ng-if="dataItem.targetText" title="Target"><i class="glyphicon glyphicon-screenshot"></i> {{dataItem.targetText}}</h3>
+        <hr class="hr" />
+        <p style="font-size: 18px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">{{dataItem.narrative}}</p>
+      <!--<h2 class="lead">Exposed</h2>-->
+      <p>
+          <button class="btn btn-lg btn-primary" data-toggle="modal" data-target=".details-modal-lg-{{dataItem.number}}" style="margin-right: 5px;">Expose!</button>
+          <!-- GoogleMap URL: https://www.google.com/maps/preview/@<latitude>,<longitude>,<zoom level>z -->
+          <a ng-if="dataItem.lat && dataItem.lon" class="btn btn-lg btn-primary" target="_blank" href="https://www.google.com/maps/preview/@{{dataItem.lat}},{{dataItem.lon}},10z">View Location</a>
+      </p>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade details-modal-lg-{{dataItem.number}}" id="myModal-{{dataItem.number}}" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color:#fff; opacity: 0.5; font-size: 36px;"><span aria-hidden="true">&times;</span></button>
+                    <h3 class="modal-title" id="myModalLabel-{{dataItem.number}}">{{dataItem.country | uppercase}} - ({{dataItem.date | date:"dd MMMM yyyy" | uppercase}})</h3>
+                </div>
+                <div class="modal-body">
+
+                    <table class="table table-responsive table-striped table-hover">
+                        <thead>
+                        <th><h3 class="no-mar-top">Headline</h3></th>
+                        </thead>
+                        <tbody>
+                        <td>
+                            <h4>{{ dataItem.bij_summary_short ? dataItem.bij_summary_short : dataItem.narrative }}</h4>
+                            <h4 class="col-xs-2 no-pad-left">Deaths: </h4> <h4 class="col-xs-10">{{dataItem.deaths}}</h4>
+                            <h4 ng-if="dataItem.civilians" class="col-xs-2 no-pad-left">Civilian Deaths </h4> <h4 ng-if="dataItem.civilians" class="col-xs-10">{{dataItem.civilians}}</h4>
+                            <h4 ng-if="dataItem.children" class="col-xs-2 no-pad-left">Child Deaths</h4> <h4 ng-if="dataItem.children" class="col-xs-10">{{dataItem.children}}</h4>
+                            <h4 class="col-xs-2 no-pad-left">Injuries: </h4> <h4 class="col-xs-10">{{dataItem.injuries && dataItem.injuries.toLowerCase() !== 'unknown' ? dataItem.injuries : 0}}</h4>
+
+                            <h4 ng-if="dataItem.location" class="col-xs-2 no-pad-left">Province: </h4> <h4 ng-if="dataItem.location" class="col-xs-10">{{dataItem.location}}</h4>
+                            <h4 ng-if="dataItem.town" class="col-xs-2 no-pad-left">City / Town: </h4> <h4 ng-if="dataItem.town" class="col-xs-10">{{dataItem.town}}</h4>
+                            <div class="text-right">
+                                <a class="btn btn-primary btn-lg" href="{{dataItem.bij_link}}" target="_blank">Read more</a>
+                            </div>
+                        </td>
+                        </tbody>
+                    </table>
+
+                    <!--<table class="table table-responsive table-striped table-hover">-->
+                        <!--<thead>-->
+                        <!--<th><h3 class="no-mar-top">Date</h3></th>-->
+                        <!--<th><h3 class="no-mar-top">Country</h3></th>-->
+                        <!--<th><h3 class="no-mar-top">Province</h3></th>-->
+                        <!--<th><h3 class="no-mar-top">Town / City</h3></th>-->
+                        <!--</thead>-->
+                        <!--<tbody>-->
+                        <!--<td><h4>{{dataItem.date | date:"dd MMMM yyyy"}}</h4></td>-->
+                        <!--<td><h4>{{dataItem.country}}</h4></td>-->
+                        <!--<td>-->
+                            <!--<h4 ng-if="dataItem.location">-->
+                                <!--{{dataItem.location}}-->
+                            <!--</h4>-->
+                        <!--</td>-->
+                        <!--<td>-->
+                            <!--<h4 ng-if="dataItem.town">-->
+                                <!--{{dataItem.town}}-->
+                            <!--</h4>-->
+                        <!--</td>-->
+                        <!--</tbody>-->
+                    <!--</table>-->
+
+                    <table class="table table-responsive table-striped table-hover" ng-if="dataItem.target">
+                        <thead>
+                        <th><h3 class="no-mar-top">Target</h3></th>
+                        </thead>
+                        <tbody>
+                        <td>
+                            <h4>{{dataItem.target}}</h4>
+                        </td>
+                        </tbody>
+                    </table>
+
+                    <table class="table table-responsive table-striped table-hover" ng-if="dataItem.namesArray.length != 0">
+                        <thead>
+                        <th><h3 class="no-mar-top">Names of People Killed</h3></th>
+                        </thead>
+                        <tbody>
+                        <td>
+                            <h4 class="col-xs-6" ng-repeat="name in dataItem.namesArray">{{name}}</h4>
+                        </td>
+                        </tbody>
+                    </table>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary btn-lg" data-dismiss="modal">Close</button>
+                    <!--<button type="button" class="btn btn-primary">Save changes</button>-->
+                </div>
+            </div>
+        </div>
+    </div>
+
+</article>
+
+
+    <div class="clearfix text-center" style="margin-bottom: 60px; margin-top: 40px; clear: both;">
+        <ul uib-pagination
+            total-items="totalItems"
+            ng-model="currentPage"
+            items-per-page="itemsPerPage"
+            max-size="maxSize"
+            class="pagination-lg"
+            boundary-links="true"
+            rotate="false"
+            ng-change="pageChanged()">
+        </ul>
+    </div>
+
 
 </section>
+
+
+<!-- Large modal -->
+<!--<button type="button" class="btn btn-primary" data-toggle="modal" data-target=".bs-example-modal-lg">Large modal</button>-->
+
+<!--
+    "_id": "55c79e711cbee48856a30886",
+    "number": 1,
+    "country": "Yemen",
+    "date": "2002-11-03T00:00:00.000Z",
+    "narrative": "In the first known US targeted assassination using a drone, a CIA Predator struck a car, killing 6 people.",
+    "town": "",
+    "location": "Marib Province",
+    "deaths": "6",
+    "deaths_min": "6",
+    "deaths_max": "6",
+    "civilians": "0",
+    "injuries": "",
+    "children": "",
+    "tweet_id": "278544689483890688",
+    "bureau_id": "YEM001",
+    "bij_summary_short": "In the first known US targeted assassination using a drone, a CIA Predator struck a car killing six al Qaeda suspects.",
+    "bij_link": "http://www.thebureauinvestigates.com/2012/03/29/yemen-reported-us-covert-actions-since-2001/",
+    "target": "",
+    "lat": "15.47467",
+    "lon": "45.322755",
+    "articles": [],
+    "names": [
+    "Qa'
+-->
